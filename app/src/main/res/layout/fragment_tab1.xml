@@ -1,0 +1,107 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="team.vision.team1310.Tab1">
+
+    <org.opencv.android.JavaCameraView
+        android:id="@+id/java_camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="150dp"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/hueSlider"
+        android:layout_marginStart="12dp"
+        android:text="Hue" />
+
+
+    <io.apptik.widget.MultiSlider
+        android:id="@+id/hueSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_alignBottom="@+id/java_camera_view"
+
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="128dp"
+        app:drawThumbsApart="true"
+        app:stepsThumbsApart="5"
+        app:thumbNumber="2" />
+
+    <TextView
+        android:id="@+id/tvHue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignTop="@+id/hueSlider"
+        android:layout_marginTop="16dp"
+        android:text="0 - 100"
+        android:textAlignment="center" />
+
+    <io.apptik.widget.MultiSlider
+        android:id="@+id/saturationSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/tvHue"
+        android:layout_marginTop="13dp" />
+
+    <TextView
+        android:id="@+id/tvSaturation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/saturationSlider"
+        android:text="0-100"
+        android:textAlignment="center" />
+
+    <io.apptik.widget.MultiSlider
+        android:id="@+id/luminanceSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/tvSaturation"
+        android:layout_marginTop="13dp" />
+
+    <TextView
+        android:id="@+id/tvLuminance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/luminanceSlider"
+        android:text="0-100"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_alignBaseline="@id/tvLuminance"
+        android:text="Luminance" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvHue"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="10dp"
+        android:text="Hue" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvSaturation"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="10dp"
+        android:text="Saturation" />
+
+</RelativeLayout>
