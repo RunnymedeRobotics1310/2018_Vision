@@ -34,7 +34,6 @@ import java.util.List;
 
 import io.apptik.widget.MultiSlider;
 
-
 public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private OnFragmentInteractionListener mListener;
@@ -71,14 +70,23 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
 
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
-    public static JavaCameraView javaCameraView;
+    public JavaCameraView javaCameraView;
 
+    public static double filterContoursMinArea = 50.0;
+    public static double filterContoursMinPerimeter = 50.0;
+    public static double filterContoursMinWidth = 10.0;
+    public static double filterContoursMaxWidth = 1000.0;
+    public static double filterContoursMinHeight = 10.0;
+    public static double filterContoursMaxHeight = 1000.0;
+    public static double[] filterContoursSolidity = {0, 100};
+    public static double filterContoursMaxVertices = 1000000.0;
+    public static double filterContoursMinVertices = 0.0;
+    public static double filterContoursMinRatio = 0.0;
+    public static double filterContoursMaxRatio = 1000.0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
 
     @Override
@@ -180,32 +188,24 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
 //        Imgproc.drawContours(imgThreshold, findContoursOutput, -1, new Scalar(255,0,0));
 
 
-        Scalar green = new Scalar(81, 190, 0);
-        for (MatOfPoint contour : findContoursOutput) {
-            RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
-            drawRotatedRect(imgThreshold, rotatedRect, green, 5);
-        }
-
-//        Mat contourImg = new Mat(findContoursInput.size(), findContoursInput.type());
-//        for (int i = 0; i < findContoursOutput.size(); i++) {
-//            Imgproc.drawContours(contourImg, findContoursOutput, i, new Scalar(255, 0, 0), 5);
-//        }
-
 
         // Step Filter_Contours0:
         ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-        double filterContoursMinArea = 0.0;
-        double filterContoursMinPerimeter = 0.0;
-        double filterContoursMinWidth = 0.0;
-        double filterContoursMaxWidth = 1000.0;
-        double filterContoursMinHeight = 0.0;
-        double filterContoursMaxHeight = 1000.0;
-        double[] filterContoursSolidity = {0, 100};
-        double filterContoursMaxVertices = 1000000.0;
-        double filterContoursMinVertices = 0.0;
-        double filterContoursMinRatio = 0.0;
-        double filterContoursMaxRatio = 1000.0;
         filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
+
+
+        // Draw the contours
+        Scalar green = new Scalar(81, 190, 0);
+        for (MatOfPoint contour : filterContoursOutput) {
+
+           if (!contour.empty()) {
+               for (Point p : contour.toArray()) {
+                   Log.i(TAG, p.x + " , " + p.y);
+               }
+               RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
+               drawRotatedRect(imgThreshold, rotatedRect, green, 5);
+           }
+        }
 
 
         return imgThreshold;
@@ -218,54 +218,6 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
         MatOfPoint points = new MatOfPoint(vertices);
         Imgproc.drawContours(image, Arrays.asList(points), -1, color, thickness);
     }
-
-//    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-//        mRgba = inputFrame.rgba();
-//
-////        Imgproc.cvtColor(mRgba, imgGray, Imgproc.COLOR_RGB2GRAY);
-////        Imgproc.Canny(imgGray, imgCanny, _progressLow, _progressHigh);
-////
-////        return imgCanny;
-//
-//        // To rotate portrait mode.. does work but the image is not full screen :(
-////        Mat rotImage = Imgproc.getRotationMatrix2D(new Point(mRgba.cols() / 2, mRgba.rows() / 2), 270, 2);
-////        Imgproc.warpAffine(mRgba, mRgba, rotImage, mRgba.size());
-////        Imgproc.warpAffine(imgGray, imgGray, rotImage, mRgba.size());
-//
-////        return mRgba;
-//        hslThreshold(mRgba, hueValues, saturationValues, luminanceValues, imgThreshold);
-////
-//        boolean findContoursExternalOnly = true;
-//        findContours(imgThreshold, findContoursExternalOnly, findContoursOutput);
-////
-//        Imgproc.drawContours(imgThreshold, findContoursOutput, -1, new Scalar(255,0,0), -1);
-//
-//
-////        Mat contourImg = new Mat(findContoursInput.size(), findContoursInput.type());
-////        for (int i = 0; i < findContoursOutput.size(); i++) {
-////            Imgproc.drawContours(contourImg, findContoursOutput, i, new Scalar(255, 0, 0), 5);
-////        }
-//
-//
-//        // Step Filter_Contours0:
-//        ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-//        double filterContoursMinArea = 0.0;
-//        double filterContoursMinPerimeter = 0.0;
-//        double filterContoursMinWidth = 0.0;
-//        double filterContoursMaxWidth = 1000.0;
-//        double filterContoursMinHeight = 0.0;
-//        double filterContoursMaxHeight = 1000.0;
-//        double[] filterContoursSolidity = {0, 100};
-//        double filterContoursMaxVertices = 1000000.0;
-//        double filterContoursMinVertices = 0.0;
-//        double filterContoursMinRatio = 0.0;
-//        double filterContoursMaxRatio = 1000.0;
-//        filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
-//
-//
-//        return imgThreshold;
-//
-//    }
 
 
     private void hslThreshold(Mat input, int[] hue, int[] sat, int[] lum, Mat out) {
@@ -355,7 +307,6 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
 
         } else {
             Log.d(TAG, "OpenCV not loaded");
-//            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallBack);
         }
     }
 }
