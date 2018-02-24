@@ -68,56 +68,60 @@ public class Tab2 extends Fragment {
         tWidthMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tWidthMin =  Double.parseDouble(((EditText) view).getText().toString());
+                appContext.tWidthMin = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
             }
         });
-         tWidthMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        tWidthMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tWidthMax =  Double.parseDouble(((EditText) view).getText().toString());
+                appContext.tWidthMax = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
             }
         });
-         tHeightMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        tHeightMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tHeightMax =  Double.parseDouble(((EditText) view).getText().toString());
+                appContext.tHeightMax = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
             }
         });
-         tHeightMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        tHeightMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tHeightMin =  Double.parseDouble(((EditText) view).getText().toString());
+                appContext.tHeightMin = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
             }
         });
-         tRatioMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        tRatioMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tRatioMin =  Double.parseDouble(((EditText) view).getText().toString());
+                appContext.tRatioMin = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
             }
         });
-         tRatioMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        tRatioMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tRatioMax =  Double.parseDouble(((EditText) view).getText().toString());
+                appContext.tRatioMax = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
             }
         });
         tPerimeterMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tPerimeterMin =  Double.parseDouble(((EditText) view).getText().toString());
-                Log.i("AppContext", String.valueOf(appContext.tPerimeterMin));
+                appContext.tPerimeterMin = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
 
             }
         });
         tAreaMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                appContext.tAreaMin =  Double.parseDouble(((EditText) view).getText().toString());
-                Log.i("AppContext", String.valueOf(appContext.tAreaMin));
+                appContext.tAreaMin = Double.parseDouble(((EditText) view).getText().toString());
+                appContext.saveSettings();
             }
         });
-
-
 
         return view;
     }
@@ -125,6 +129,14 @@ public class Tab2 extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        tWidthMin.clearFocus();
+        tWidthMax.clearFocus();
+        tHeightMax.clearFocus();
+        tHeightMin.clearFocus();
+        tRatioMin.clearFocus();
+        tRatioMax.clearFocus();
+        tPerimeterMin.clearFocus();
+        tAreaMin.clearFocus();
         appContext.saveSettings();
     }
 

@@ -104,4 +104,17 @@
         android:layout_marginLeft="10dp"
         android:text="Saturation" />
 
+    <TextView
+        android:id="@+id/tvTotalContours"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@android:color/background_dark"
+        android:fontFamily="monospace"
+        android:paddingRight="30dp"
+        android:text="Contours: 0"
+        android:textAlignment="textEnd"
+        android:textColor="@color/white" />
+
 </RelativeLayout>
