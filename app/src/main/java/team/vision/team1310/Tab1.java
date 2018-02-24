@@ -4,75 +4,140 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.JavaCameraView;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfInt;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.RotatedRect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import io.apptik.widget.MultiSlider;
 
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link Tab1.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link Tab1#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class Tab1 extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private OnFragmentInteractionListener mListener;
+    String TAG = "TAB1";
 
     public Tab1() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Tab1.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static Tab1 newInstance(String param1, String param2) {
-        Tab1 fragment = new Tab1();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(getActivity()) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case BaseLoaderCallback.SUCCESS:
+                    javaCameraView.enableView();
+                    break;
+                default:
+                    super.onManagerConnected(status);
+                    break;
+            }
+        }
+    };
+
+    View view;
+
+    MultiSlider hueSlider, saturationSlider, luminanceSlider;
+    TextView tvHue, tvSaturation, tvLuminance;
+
+    Mat mRgba, imgGray, imgCanny, imgThreshold;
+
+    int[] hueValues = {50, 150};
+    int[] saturationValues = {25, 100};
+    int[] luminanceValues = {10, 120};
+
+    private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
+    private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
+    public static JavaCameraView javaCameraView;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_tab1, container, false);
+        view = inflater.inflate(R.layout.fragment_tab1, container, false);
+
+
+        javaCameraView = (JavaCameraView) view.findViewById(R.id.java_camera_view);
+        javaCameraView.setVisibility(SurfaceView.VISIBLE);
+        javaCameraView.setCvCameraViewListener(this);
+
+        hueSlider = (MultiSlider) view.findViewById(R.id.hueSlider);
+        saturationSlider = (MultiSlider) view.findViewById(R.id.saturationSlider);
+        luminanceSlider = (MultiSlider) view.findViewById(R.id.luminanceSlider);
+
+        hueSlider.setMax(180);
+        saturationSlider.setMax(255);
+        luminanceSlider.setMax(255);
+
+        tvHue = (TextView) view.findViewById(R.id.tvHue);
+        tvSaturation = (TextView) view.findViewById(R.id.tvSaturation);
+        tvLuminance = (TextView) view.findViewById(R.id.tvLuminance);
+
+        hueSlider.setOnThumbValueChangeListener(new MultiSlider.OnThumbValueChangeListener() {
+            @Override
+            public void onValueChanged(MultiSlider multiSlider, MultiSlider.Thumb thumb, int thumbIndex, int value) {
+                hueValues[0] = multiSlider.getThumb(0).getValue();
+                hueValues[1] = multiSlider.getThumb(1).getValue();
+                tvHue.setText(multiSlider.getThumb(0).getValue() + " - " + multiSlider.getThumb(1).getValue());
+
+            }
+        });
+
+        saturationSlider.setOnThumbValueChangeListener(new MultiSlider.OnThumbValueChangeListener() {
+            @Override
+            public void onValueChanged(MultiSlider multiSlider, MultiSlider.Thumb thumb, int thumbIndex, int value) {
+
+                saturationValues[0] = multiSlider.getThumb(0).getValue();
+                saturationValues[1] = multiSlider.getThumb(1).getValue();
+
+                tvSaturation.setText(multiSlider.getThumb(0).getValue() + " - " + multiSlider.getThumb(1).getValue());
+            }
+        });
+
+        luminanceSlider.setOnThumbValueChangeListener(new MultiSlider.OnThumbValueChangeListener() {
+            @Override
+            public void onValueChanged(MultiSlider multiSlider, MultiSlider.Thumb thumb, int thumbIndex, int value) {
+
+                luminanceValues[0] = multiSlider.getThumb(0).getValue();
+                luminanceValues[1] = multiSlider.getThumb(1).getValue();
+                tvLuminance.setText(multiSlider.getThumb(0).getValue() + " - " + multiSlider.getThumb(1).getValue());
+            }
+        });
+
+        return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -91,6 +156,164 @@ public class Tab1 extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public void onCameraViewStarted(int width, int height) {
+        mRgba = new Mat(height, width, CvType.CV_8UC4);
+        imgGray = new Mat(height, width, CvType.CV_8UC4);
+        imgCanny = new Mat(height, width, CvType.CV_8UC4);
+        imgThreshold = new Mat(height, width, CvType.CV_8UC4);
+    }
+
+    @Override
+    public void onCameraViewStopped() {
+        mRgba.release();
+    }
+
+    @Override
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        mRgba = inputFrame.rgba();
+        hslThreshold(mRgba, hueValues, saturationValues, luminanceValues, imgThreshold);
+
+        boolean findContoursExternalOnly = true;
+        findContours(imgThreshold, findContoursExternalOnly, findContoursOutput);
+
+//        Imgproc.drawContours(imgThreshold, findContoursOutput, -1, new Scalar(255,0,0));
+
+
+        Scalar green = new Scalar(81, 190, 0);
+        for (MatOfPoint contour : findContoursOutput) {
+            RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
+            drawRotatedRect(imgThreshold, rotatedRect, green, 5);
+        }
+
+//        Mat contourImg = new Mat(findContoursInput.size(), findContoursInput.type());
+//        for (int i = 0; i < findContoursOutput.size(); i++) {
+//            Imgproc.drawContours(contourImg, findContoursOutput, i, new Scalar(255, 0, 0), 5);
+//        }
+
+
+        // Step Filter_Contours0:
+        ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
+        double filterContoursMinArea = 0.0;
+        double filterContoursMinPerimeter = 0.0;
+        double filterContoursMinWidth = 0.0;
+        double filterContoursMaxWidth = 1000.0;
+        double filterContoursMinHeight = 0.0;
+        double filterContoursMaxHeight = 1000.0;
+        double[] filterContoursSolidity = {0, 100};
+        double filterContoursMaxVertices = 1000000.0;
+        double filterContoursMinVertices = 0.0;
+        double filterContoursMinRatio = 0.0;
+        double filterContoursMaxRatio = 1000.0;
+        filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
+
+
+        return imgThreshold;
+
+    }
+
+    public static void drawRotatedRect(Mat image, RotatedRect rotatedRect, Scalar color, int thickness) {
+        Point[] vertices = new Point[4];
+        rotatedRect.points(vertices);
+        MatOfPoint points = new MatOfPoint(vertices);
+        Imgproc.drawContours(image, Arrays.asList(points), -1, color, thickness);
+    }
+
+//    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+//        mRgba = inputFrame.rgba();
+//
+////        Imgproc.cvtColor(mRgba, imgGray, Imgproc.COLOR_RGB2GRAY);
+////        Imgproc.Canny(imgGray, imgCanny, _progressLow, _progressHigh);
+////
+////        return imgCanny;
+//
+//        // To rotate portrait mode.. does work but the image is not full screen :(
+////        Mat rotImage = Imgproc.getRotationMatrix2D(new Point(mRgba.cols() / 2, mRgba.rows() / 2), 270, 2);
+////        Imgproc.warpAffine(mRgba, mRgba, rotImage, mRgba.size());
+////        Imgproc.warpAffine(imgGray, imgGray, rotImage, mRgba.size());
+//
+////        return mRgba;
+//        hslThreshold(mRgba, hueValues, saturationValues, luminanceValues, imgThreshold);
+////
+//        boolean findContoursExternalOnly = true;
+//        findContours(imgThreshold, findContoursExternalOnly, findContoursOutput);
+////
+//        Imgproc.drawContours(imgThreshold, findContoursOutput, -1, new Scalar(255,0,0), -1);
+//
+//
+////        Mat contourImg = new Mat(findContoursInput.size(), findContoursInput.type());
+////        for (int i = 0; i < findContoursOutput.size(); i++) {
+////            Imgproc.drawContours(contourImg, findContoursOutput, i, new Scalar(255, 0, 0), 5);
+////        }
+//
+//
+//        // Step Filter_Contours0:
+//        ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
+//        double filterContoursMinArea = 0.0;
+//        double filterContoursMinPerimeter = 0.0;
+//        double filterContoursMinWidth = 0.0;
+//        double filterContoursMaxWidth = 1000.0;
+//        double filterContoursMinHeight = 0.0;
+//        double filterContoursMaxHeight = 1000.0;
+//        double[] filterContoursSolidity = {0, 100};
+//        double filterContoursMaxVertices = 1000000.0;
+//        double filterContoursMinVertices = 0.0;
+//        double filterContoursMinRatio = 0.0;
+//        double filterContoursMaxRatio = 1000.0;
+//        filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
+//
+//
+//        return imgThreshold;
+//
+//    }
+
+
+    private void hslThreshold(Mat input, int[] hue, int[] sat, int[] lum, Mat out) {
+        Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HLS);
+        Core.inRange(out, new Scalar(hue[0], lum[0], sat[0]),
+                new Scalar(hue[1], lum[1], sat[1]), out);
+    }
+
+    private void findContours(Mat input, boolean externalOnly, List<MatOfPoint> contours) {
+        Mat hierarchy = new Mat();
+        contours.clear();
+        int mode = externalOnly ? Imgproc.RETR_EXTERNAL : Imgproc.RETR_LIST;
+        Imgproc.findContours(input, contours, hierarchy, mode, Imgproc.CHAIN_APPROX_SIMPLE);
+    }
+
+    private void filterContours(List<MatOfPoint> inputContours, double minArea,
+                                double minPerimeter, double minWidth, double maxWidth, double minHeight, double
+                                        maxHeight, double[] solidity, double maxVertexCount, double minVertexCount, double
+                                        minRatio, double maxRatio, List<MatOfPoint> output) {
+        final MatOfInt hull = new MatOfInt();
+        output.clear();
+        //operation
+        for (int i = 0; i < inputContours.size(); i++) {
+            final MatOfPoint contour = inputContours.get(i);
+            final Rect bb = Imgproc.boundingRect(contour);
+            if (bb.width < minWidth || bb.width > maxWidth) continue;
+            if (bb.height < minHeight || bb.height > maxHeight) continue;
+            final double area = Imgproc.contourArea(contour);
+            if (area < minArea) continue;
+            if (Imgproc.arcLength(new MatOfPoint2f(contour.toArray()), true) < minPerimeter)
+                continue;
+            Imgproc.convexHull(contour, hull);
+            MatOfPoint mopHull = new MatOfPoint();
+            mopHull.create((int) hull.size().height, 1, CvType.CV_32SC2);
+            for (int j = 0; j < hull.size().height; j++) {
+                int index = (int) hull.get(j, 0)[0];
+                double[] point = new double[]{contour.get(index, 0)[0], contour.get(index, 0)[1]};
+                mopHull.put(j, 0, point);
+            }
+            final double solid = 100 * area / Imgproc.contourArea(mopHull);
+            if (solid < solidity[0] || solid > solidity[1]) continue;
+            if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount) continue;
+            final double ratio = bb.width / (double) bb.height;
+            if (ratio < minRatio || ratio > maxRatio) continue;
+            output.add(contour);
+        }
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -104,5 +327,35 @@ public class Tab1 extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (javaCameraView != null) {
+            javaCameraView.disableView();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (javaCameraView != null) {
+            javaCameraView.disableView();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (OpenCVLoader.initDebug()) {
+            Log.d(TAG, "OpenCV loaded successfully");
+            mLoaderCallBack.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+
+
+        } else {
+            Log.d(TAG, "OpenCV not loaded");
+//            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallBack);
+        }
     }
 }
