@@ -39,6 +39,8 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
     private OnFragmentInteractionListener mListener;
     String TAG = "TAB1";
 
+    AppContext appContext;
+
     public Tab1() {
         // Required empty public constructor
     }
@@ -64,29 +66,19 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
 
     Mat mRgba, imgGray, imgCanny, imgThreshold;
 
-    int[] hueValues = {50, 150};
-    int[] saturationValues = {25, 100};
-    int[] luminanceValues = {10, 120};
-
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
     public JavaCameraView javaCameraView;
 
-    public static double filterContoursMinArea = 50.0;
-    public static double filterContoursMinPerimeter = 50.0;
-    public static double filterContoursMinWidth = 10.0;
-    public static double filterContoursMaxWidth = 1000.0;
-    public static double filterContoursMinHeight = 10.0;
-    public static double filterContoursMaxHeight = 1000.0;
     public static double[] filterContoursSolidity = {0, 100};
     public static double filterContoursMaxVertices = 1000000.0;
     public static double filterContoursMinVertices = 0.0;
-    public static double filterContoursMinRatio = 0.0;
-    public static double filterContoursMaxRatio = 1000.0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+       appContext = AppContext.getInstance();
     }
 
     @Override
@@ -112,40 +104,47 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
         tvSaturation = (TextView) view.findViewById(R.id.tvSaturation);
         tvLuminance = (TextView) view.findViewById(R.id.tvLuminance);
 
+        hueSlider.getThumb(0).setValue(appContext.hueValues[0]);
+        hueSlider.getThumb(1).setValue(appContext.hueValues[1]);
+        saturationSlider.getThumb(0).setValue(appContext.saturationValues[0]);
+        saturationSlider.getThumb(1).setValue(appContext.saturationValues[1]);
+        luminanceSlider.getThumb(0).setValue(appContext.luminanceValues[0]);
+        luminanceSlider.getThumb(1).setValue(appContext.luminanceValues[1]);
+
+        updateSliderText(hueSlider, appContext.hueValues, tvHue);
+        updateSliderText(saturationSlider, appContext.saturationValues, tvSaturation);
+        updateSliderText(luminanceSlider, appContext.luminanceValues, tvLuminance);
+
         hueSlider.setOnThumbValueChangeListener(new MultiSlider.OnThumbValueChangeListener() {
             @Override
             public void onValueChanged(MultiSlider multiSlider, MultiSlider.Thumb thumb, int thumbIndex, int value) {
-                hueValues[0] = multiSlider.getThumb(0).getValue();
-                hueValues[1] = multiSlider.getThumb(1).getValue();
-                tvHue.setText(multiSlider.getThumb(0).getValue() + " - " + multiSlider.getThumb(1).getValue());
-
+                updateSliderText(multiSlider, appContext.hueValues, tvHue);
             }
         });
 
         saturationSlider.setOnThumbValueChangeListener(new MultiSlider.OnThumbValueChangeListener() {
             @Override
             public void onValueChanged(MultiSlider multiSlider, MultiSlider.Thumb thumb, int thumbIndex, int value) {
-
-                saturationValues[0] = multiSlider.getThumb(0).getValue();
-                saturationValues[1] = multiSlider.getThumb(1).getValue();
-
-                tvSaturation.setText(multiSlider.getThumb(0).getValue() + " - " + multiSlider.getThumb(1).getValue());
+                updateSliderText(multiSlider, appContext.saturationValues, tvSaturation);
             }
         });
 
         luminanceSlider.setOnThumbValueChangeListener(new MultiSlider.OnThumbValueChangeListener() {
             @Override
             public void onValueChanged(MultiSlider multiSlider, MultiSlider.Thumb thumb, int thumbIndex, int value) {
-
-                luminanceValues[0] = multiSlider.getThumb(0).getValue();
-                luminanceValues[1] = multiSlider.getThumb(1).getValue();
-                tvLuminance.setText(multiSlider.getThumb(0).getValue() + " - " + multiSlider.getThumb(1).getValue());
+               updateSliderText(multiSlider, appContext.luminanceValues, tvLuminance);
             }
         });
 
         return view;
     }
 
+    private void updateSliderText(MultiSlider slider, int[] value, TextView tv) {
+        value[0] = slider.getThumb(0).getValue();
+        value[1] = slider.getThumb(1).getValue();
+
+        tv.setText(slider.getThumb(0).getValue() + " - " + slider.getThumb(1).getValue());
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -180,7 +179,7 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-        hslThreshold(mRgba, hueValues, saturationValues, luminanceValues, imgThreshold);
+        hslThreshold(mRgba, appContext.hueValues, appContext.saturationValues, appContext.luminanceValues, imgThreshold);
 
         boolean findContoursExternalOnly = true;
         findContours(imgThreshold, findContoursExternalOnly, findContoursOutput);
@@ -188,23 +187,22 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
 //        Imgproc.drawContours(imgThreshold, findContoursOutput, -1, new Scalar(255,0,0));
 
 
-
         // Step Filter_Contours0:
         ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-        filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
+        filterContours(filterContoursContours, appContext.tAreaMin, appContext.tPerimeterMin, appContext.tWidthMin, appContext.tWidthMax, appContext.tHeightMin, appContext.tHeightMax, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, appContext.tRatioMin, appContext.tRatioMax, filterContoursOutput);
 
 
         // Draw the contours
         Scalar green = new Scalar(81, 190, 0);
         for (MatOfPoint contour : filterContoursOutput) {
 
-           if (!contour.empty()) {
-               for (Point p : contour.toArray()) {
-                   Log.i(TAG, p.x + " , " + p.y);
-               }
-               RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
-               drawRotatedRect(imgThreshold, rotatedRect, green, 5);
-           }
+            if (!contour.empty()) {
+                for (Point p : contour.toArray()) {
+                    Log.i(TAG, p.x + " , " + p.y);
+                }
+                RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
+                drawRotatedRect(imgThreshold, rotatedRect, green, 5);
+            }
         }
 
 
@@ -284,6 +282,7 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
     @Override
     public void onPause() {
         super.onPause();
+        appContext.saveSettings();
         if (javaCameraView != null) {
             javaCameraView.disableView();
         }

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +16,7 @@ import android.widget.EditText;
 
 public class Tab2 extends Fragment {
 
+    AppContext appContext = AppContext.getInstance();
 
     View view;
     EditText tWidthMin;
@@ -23,7 +27,6 @@ public class Tab2 extends Fragment {
     EditText tRatioMax;
     EditText tPerimeterMin;
     EditText tAreaMin;
-    Button btnSave, btnCancel;
 
     private OnFragmentInteractionListener mListener;
 
@@ -53,18 +56,76 @@ public class Tab2 extends Fragment {
         tPerimeterMin = (EditText) view.findViewById(R.id.tPerimeterMin);
         tAreaMin = (EditText) view.findViewById(R.id.tAreaMin);
 
-        btnSave = (Button) view.findViewById(R.id.btnContourSave);
-        btnCancel = (Button) view.findViewById(R.id.btnContourCancel);
+        tWidthMin.setText(String.valueOf(appContext.tWidthMin));
+        tWidthMax.setText(String.valueOf(appContext.tWidthMax));
+        tHeightMax.setText(String.valueOf(appContext.tHeightMax));
+        tHeightMin.setText(String.valueOf(appContext.tHeightMin));
+        tRatioMin.setText(String.valueOf(appContext.tRatioMin));
+        tRatioMax.setText(String.valueOf(appContext.tRatioMax));
+        tPerimeterMin.setText(String.valueOf(appContext.tPerimeterMin));
+        tAreaMin.setText(String.valueOf(appContext.tAreaMin));
 
-        btnSave.setOnClickListener(new View.OnClickListener() {
-
+        tWidthMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public void onClick(View view) {
+            public void onFocusChange(View view, boolean b) {
+                appContext.tWidthMin =  Double.parseDouble(((EditText) view).getText().toString());
+            }
+        });
+         tWidthMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.tWidthMax =  Double.parseDouble(((EditText) view).getText().toString());
+            }
+        });
+         tHeightMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.tHeightMax =  Double.parseDouble(((EditText) view).getText().toString());
+            }
+        });
+         tHeightMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.tHeightMin =  Double.parseDouble(((EditText) view).getText().toString());
+            }
+        });
+         tRatioMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.tRatioMin =  Double.parseDouble(((EditText) view).getText().toString());
+            }
+        });
+         tRatioMax.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.tRatioMax =  Double.parseDouble(((EditText) view).getText().toString());
+            }
+        });
+        tPerimeterMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.tPerimeterMin =  Double.parseDouble(((EditText) view).getText().toString());
+                Log.i("AppContext", String.valueOf(appContext.tPerimeterMin));
 
             }
         });
+        tAreaMin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.tAreaMin =  Double.parseDouble(((EditText) view).getText().toString());
+                Log.i("AppContext", String.valueOf(appContext.tAreaMin));
+            }
+        });
+
+
 
         return view;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        appContext.saveSettings();
     }
 
     @Override

@@ -30,11 +30,18 @@ public class MainActivity extends AppCompatActivity implements Tab1.OnFragmentIn
 
     private static final String TAG = "MainActivity";
 
+    private AppContext appContext = AppContext.getInstance();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        appContext.mainActivity = this;
+        appContext.loadSettings();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupTabs();
+
     }
 
     protected void setupTabs() {
