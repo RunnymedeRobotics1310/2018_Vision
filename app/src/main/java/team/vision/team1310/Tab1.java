@@ -1,6 +1,7 @@
 package team.vision.team1310;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,9 @@ import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -16,21 +20,15 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import io.apptik.widget.MultiSlider;
 
@@ -66,6 +64,10 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
 
     Mat mRgba, imgGray, imgCanny, imgThreshold;
 
+    RelativeLayout HSLSliders, relativeLayoutTab1;
+
+    Switch rgbSwitch;
+
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
     public JavaCameraView javaCameraView;
@@ -92,9 +94,14 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
         javaCameraView.setCvCameraViewListener(this);
 
+        rgbSwitch = (Switch) view.findViewById(R.id.rgbSwitch);
+
         hueSlider = (MultiSlider) view.findViewById(R.id.hueSlider);
         saturationSlider = (MultiSlider) view.findViewById(R.id.saturationSlider);
         luminanceSlider = (MultiSlider) view.findViewById(R.id.luminanceSlider);
+
+        HSLSliders = (RelativeLayout) view.findViewById(R.id.HSLSliders);
+        relativeLayoutTab1 = (RelativeLayout) view.findViewById(R.id.relativeLayoutTab1);
 
         hueSlider.setMax(180);
         saturationSlider.setMax(255);
@@ -104,6 +111,18 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
         tvSaturation = (TextView) view.findViewById(R.id.tvSaturation);
         tvLuminance = (TextView) view.findViewById(R.id.tvLuminance);
         tvTotalContours = (TextView) view.findViewById(R.id.tvTotalContours);
+
+        rgbSwitch.setChecked(appContext.showRGB);
+
+        slidersVisibility(!rgbSwitch.isChecked());
+
+        rgbSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                appContext.showRGB = isChecked;
+                slidersVisibility(!isChecked);
+                appContext.saveSettings();
+            }
+        });
 
         hueSlider.getThumb(0).setValue(appContext.hueValues[0]);
         hueSlider.getThumb(1).setValue(appContext.hueValues[1]);
@@ -182,96 +201,50 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-        hslThreshold(mRgba, appContext.hueValues, appContext.saturationValues, appContext.luminanceValues, imgThreshold);
+        VisionAlgorithm.hslThreshold(mRgba, appContext.hueValues, appContext.saturationValues, appContext.luminanceValues, imgThreshold);
 
         boolean findContoursExternalOnly = true;
-        findContours(imgThreshold, findContoursExternalOnly, findContoursOutput);
-
-//        Imgproc.drawContours(imgThreshold, findContoursOutput, -1, new Scalar(255,0,0));
-
+        VisionAlgorithm.findContours(imgThreshold, findContoursExternalOnly, findContoursOutput);
 
         // Step Filter_Contours0:
         ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-        filterContours(filterContoursContours, appContext.tAreaMin, appContext.tPerimeterMin, appContext.tWidthMin, appContext.tWidthMax, appContext.tHeightMin, appContext.tHeightMax, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, appContext.tRatioMin, appContext.tRatioMax, filterContoursOutput);
+        VisionAlgorithm.filterContours(filterContoursContours, appContext.tAreaMin, appContext.tPerimeterMin, appContext.tWidthMin, appContext.tWidthMax, appContext.tHeightMin, appContext.tHeightMax, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, appContext.tRatioMin, appContext.tRatioMax, filterContoursOutput);
 
+        int totalContours = filterContoursOutput.size();
 
-        // Draw the contours
-        Scalar green = new Scalar(81, 190, 0);
-
-         int totalContours = filterContoursOutput.size();
+        // Output the total found contours
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
                 tvTotalContours.setText("Contours: " + filterContoursOutput.size());
             }
         });
 
+        // Display RGB or HSL depending on what we select
+        Mat mDisplay = appContext.showRGB ? mRgba : imgThreshold;
 
+        // If we have less than 6 contours, then we can color them with green
+        // Because otherwise the phone will lag as there can be over 1000+ contours and it will try to draw a green over each one of them
         if (totalContours < 6) {
             for (MatOfPoint contour : filterContoursOutput) {
 //            Log.i(TAG, "width: " + contour.width() + " height: " + contour.height());
                 RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
-                drawRotatedRect(mRgba, rotatedRect, green, 5);
+                VisionAlgorithm.drawRectangle(mDisplay, rotatedRect);
             }
         }
 
-
-        return mRgba;
-//        return imgThreshold
-
-    }
-
-    public static void drawRotatedRect(Mat image, RotatedRect rotatedRect, Scalar color, int thickness) {
-        Point[] vertices = new Point[4];
-        rotatedRect.points(vertices);
-        MatOfPoint points = new MatOfPoint(vertices);
-        Imgproc.drawContours(image, Arrays.asList(points), -1, color, thickness);
+        return mDisplay;
     }
 
 
-    private void hslThreshold(Mat input, int[] hue, int[] sat, int[] lum, Mat out) {
-        Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HLS);
-        Core.inRange(out, new Scalar(hue[0], lum[0], sat[0]),
-                new Scalar(hue[1], lum[1], sat[1]), out);
-    }
-
-    private void findContours(Mat input, boolean externalOnly, List<MatOfPoint> contours) {
-        Mat hierarchy = new Mat();
-        contours.clear();
-        int mode = externalOnly ? Imgproc.RETR_EXTERNAL : Imgproc.RETR_LIST;
-        Imgproc.findContours(input, contours, hierarchy, mode, Imgproc.CHAIN_APPROX_SIMPLE);
-    }
-
-    private void filterContours(List<MatOfPoint> inputContours, double minArea,
-                                double minPerimeter, double minWidth, double maxWidth, double minHeight, double
-                                        maxHeight, double[] solidity, double maxVertexCount, double minVertexCount, double
-                                        minRatio, double maxRatio, List<MatOfPoint> output) {
-        final MatOfInt hull = new MatOfInt();
-        output.clear();
-        //operation
-        for (int i = 0; i < inputContours.size(); i++) {
-            final MatOfPoint contour = inputContours.get(i);
-            final Rect bb = Imgproc.boundingRect(contour);
-            if (bb.width < minWidth || bb.width > maxWidth) continue;
-            if (bb.height < minHeight || bb.height > maxHeight) continue;
-            final double area = Imgproc.contourArea(contour);
-            if (area < minArea) continue;
-            if (Imgproc.arcLength(new MatOfPoint2f(contour.toArray()), true) < minPerimeter)
-                continue;
-            Imgproc.convexHull(contour, hull);
-            MatOfPoint mopHull = new MatOfPoint();
-            mopHull.create((int) hull.size().height, 1, CvType.CV_32SC2);
-            for (int j = 0; j < hull.size().height; j++) {
-                int index = (int) hull.get(j, 0)[0];
-                double[] point = new double[]{contour.get(index, 0)[0], contour.get(index, 0)[1]};
-                mopHull.put(j, 0, point);
-            }
-            final double solid = 100 * area / Imgproc.contourArea(mopHull);
-            if (solid < solidity[0] || solid > solidity[1]) continue;
-            if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount) continue;
-            final double ratio = bb.width / (double) bb.height;
-            if (ratio < minRatio || ratio > maxRatio) continue;
-            output.add(contour);
-        }
+    /**
+     * Update the visibility of Sliders depending on if it's hidden or not
+     *
+     * @param visible
+     */
+    private void slidersVisibility(boolean visible) {
+        int visibility = visible ? View.VISIBLE : View.GONE;
+        HSLSliders.setVisibility(visibility);
+        relativeLayoutTab1.setBackgroundColor(visible ? Color.WHITE : Color.BLACK);
     }
 
     /**
@@ -285,7 +258,6 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 

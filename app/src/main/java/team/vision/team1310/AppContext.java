@@ -32,6 +32,8 @@ public class AppContext {
     public double tPerimeterMin = 0.0;
     public double tAreaMin = 0.0;
 
+    public boolean showRGB = false;
+
     int[] hueValues = {50, 150};
     int[] saturationValues = {25, 100};
     int[] luminanceValues = {10, 120};
@@ -58,6 +60,8 @@ public class AppContext {
         luminanceValues[0] = prefs.getInt("luminanceValueStart", 0);
         luminanceValues[1] = prefs.getInt("luminanceValueEnd", 100);
 
+        showRGB = prefs.getBoolean("showRGB", false);
+
         Log.i("AppContext", "settings loaded " + tAreaMin);
 
     }
@@ -81,6 +85,8 @@ public class AppContext {
         prefsEditor.putInt("saturationValueEnd", saturationValues[1]);
         prefsEditor.putInt("luminanceValueStart", luminanceValues[0]);
         prefsEditor.putInt("luminanceValueEnd", luminanceValues[1]);
+
+        prefsEditor.putBoolean("showRGB", showRGB);
 
         prefsEditor.apply();
 
