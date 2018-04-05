@@ -24,6 +24,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -218,6 +219,16 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
                 tvTotalContours.setText("Contours: " + filterContoursOutput.size());
             }
         });
+
+        for (int i = 0; i < filterContoursOutput.size(); i++) {
+            Log.d(TAG, "Contour area: " + Imgproc.contourArea(filterContoursOutput.get(i)) );
+
+            final Rect bb = Imgproc.boundingRect(filterContoursOutput.get(i));
+
+            Log.d(TAG, "Contour height: " + bb.height);
+            Log.d(TAG, "Contour width: " + bb.width );
+            Log.d(TAG, String.format("x, y values: (%s,%s)", bb.x, bb.y));
+        }
 
         // Display RGB or HSL depending on what we select
         Mat mDisplay = appContext.showRGB ? mRgba : imgThreshold;
