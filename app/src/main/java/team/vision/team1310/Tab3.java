@@ -1,77 +1,104 @@
 package team.vision.team1310;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link Tab3.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link Tab3#newInstance} factory method to
- * create an instance of this fragment.
+ * This is responsible for connecting to server
  */
 public class Tab3 extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+
+    AppContext appContext = AppContext.getInstance();
+    private String TAG = "Tab3";
+
+    View view;
+    Button btnConnect, btnDisconnect, btnSend;
+    TextView tvPortNumber;
+    Switch switchAutoConnect;
 
     public Tab3() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Tab3.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static Tab3 newInstance(String param1, String param2) {
-        Tab3 fragment = new Tab3();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_tab3, container, false);
-    }
+        view =  inflater.inflate(R.layout.fragment_tab3, container, false);
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
+
+        btnConnect = (Button) view.findViewById(R.id.btnConnect);
+        btnDisconnect = (Button) view.findViewById(R.id.btnDisconnect);
+        btnSend = (Button) view.findViewById(R.id.btnSend);
+        tvPortNumber = (TextView) view.findViewById(R.id.tvPortNumber);
+
+        tvPortNumber.setText(String.valueOf(appContext.connectionPort));
+
+        switchAutoConnect = (Switch) view.findViewById(R.id.switchAutoConnect);
+
+        switchAutoConnect.setChecked(appContext.autoConnect);
+
+        switchAutoConnect.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                appContext.autoConnect = isChecked;
+                appContext.saveSettings();
+            }
+        });
+
+
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity)getActivity()).connect();
+            }
+        });
+
+        btnDisconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity)getActivity()).disconnect();
+            }
+        });
+
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity)getActivity()).send("Testing Connection");
+            }
+        });
+
+        tvPortNumber.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                appContext.connectionPort = Integer.parseInt(((TextView) view).getText().toString());
+                appContext.saveSettings();
+            }
+        });
+
+
+        return view;
     }
 
     @Override
@@ -91,6 +118,19 @@ public class Tab3 extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        tvPortNumber.clearFocus();
+        ((MainActivity)getActivity()).updateView();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((MainActivity)getActivity()).updateView();
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -105,4 +145,16 @@ public class Tab3 extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+    private void showToast(final Context context, final String message) {
+        new Handler(context.getMainLooper()).post(new Runnable() {
+
+            @Override
+            public void run() {
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
 }

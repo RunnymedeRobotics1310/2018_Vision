@@ -2,14 +2,78 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context="team.vision.team1310.Tab3">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+
+    <Button
+        android:id="@+id/btnConnect"
+        style="@android:style/Widget.Material.Button.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="Tab 3"
-        android:textSize="30dp" />
+        android:text="Connect" />
+
+    <Button
+        android:id="@+id/btnSend"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="181dp"
+        android:text="Test Send" />
+
+    <Button
+        android:id="@+id/btnDisconnect"
+        style="@android:style/Widget.Material.Light.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="99dp"
+        android:text="Disconnnect :(" />
+
+    <TextView
+        android:id="@+id/tConnectionStatus"
+        android:layout_width="284dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="133dp"
+        android:text="Waiting..."
+        android:textAlignment="center"
+        android:textSize="30sp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/btnSend"
+        android:layout_marginTop="184dp"
+        android:text="Port:" />
+
+    <EditText
+        android:id="@+id/tvPortNumber"
+        android:layout_width="113dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView"
+        android:layout_toEndOf="@+id/textView"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="5001"
+        android:textSize="14sp" />
+
+    <Switch
+        android:id="@+id/switchAutoConnect"
+        android:layout_width="294dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="36dp"
+        android:text="Autoconnect on app launch " />
 
 </RelativeLayout>

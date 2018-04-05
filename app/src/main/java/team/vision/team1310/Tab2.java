@@ -18,7 +18,7 @@ public class Tab2 extends Fragment {
 
     AppContext appContext = AppContext.getInstance();
 
-    View view;
+    View      view;
     EditText tWidthMin;
     EditText tWidthMax;
     EditText tHeightMax;

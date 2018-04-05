@@ -33,15 +33,16 @@ public class AppContext {
     public double tAreaMin = 0.0;
 
     public boolean showRGB = false;
+    public boolean autoConnect = false;
 
     int[] hueValues = {50, 150};
     int[] saturationValues = {25, 100};
     int[] luminanceValues = {10, 120};
 
+    public int connectionPort = 5001;
+    public String connectionHost = "localhost";
 
     public void loadSettings() {
-        String s;
-        boolean b;
 
         SharedPreferences prefs = mainActivity.getSharedPreferences("Prefs", Context.MODE_PRIVATE);
 
@@ -60,7 +61,12 @@ public class AppContext {
         luminanceValues[0] = prefs.getInt("luminanceValueStart", 0);
         luminanceValues[1] = prefs.getInt("luminanceValueEnd", 100);
 
+
+        connectionPort = prefs.getInt("connectionPort", 5001);
+        connectionHost = prefs.getString("connectionHost", "localhost");
+
         showRGB = prefs.getBoolean("showRGB", false);
+        autoConnect = prefs.getBoolean("autoConnect", false);
 
         Log.i("AppContext", "settings loaded " + tAreaMin);
 
@@ -86,7 +92,11 @@ public class AppContext {
         prefsEditor.putInt("luminanceValueStart", luminanceValues[0]);
         prefsEditor.putInt("luminanceValueEnd", luminanceValues[1]);
 
+        prefsEditor.putInt("connectionPort", connectionPort);
+        prefsEditor.putString("connectionHost", connectionHost);
+
         prefsEditor.putBoolean("showRGB", showRGB);
+        prefsEditor.putBoolean("autoConnect", autoConnect);
 
         prefsEditor.apply();
 
