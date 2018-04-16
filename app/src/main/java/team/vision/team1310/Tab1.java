@@ -220,26 +220,33 @@ public class Tab1 extends Fragment implements CameraBridgeViewBase.CvCameraViewL
             }
         });
 
-        for (int i = 0; i < filterContoursOutput.size(); i++) {
-            Log.d(TAG, "Contour area: " + Imgproc.contourArea(filterContoursOutput.get(i)) );
-
-            final Rect bb = Imgproc.boundingRect(filterContoursOutput.get(i));
-
-            Log.d(TAG, "Contour height: " + bb.height);
-            Log.d(TAG, "Contour width: " + bb.width );
-            Log.d(TAG, String.format("x, y values: (%s,%s)", bb.x, bb.y));
-        }
 
         // Display RGB or HSL depending on what we select
         Mat mDisplay = appContext.showRGB ? mRgba : imgThreshold;
 
         // If we have less than 6 contours, then we can color them with green
         // Because otherwise the phone will lag as there can be over 1000+ contours and it will try to draw a green over each one of them
-        if (totalContours < 6) {
+        if (totalContours < 10) {
             for (MatOfPoint contour : filterContoursOutput) {
 //            Log.i(TAG, "width: " + contour.width() + " height: " + contour.height());
                 RotatedRect rotatedRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
                 VisionAlgorithm.drawRectangle(mDisplay, rotatedRect);
+
+                // The contour information
+                final Rect bb = Imgproc.boundingRect(contour);
+                Log.d(TAG, "Contour height: " + bb.height);
+                Log.d(TAG, "Contour width: " + bb.width);
+                Log.d(TAG, String.format("x, y values: (%s,%s)", bb.x, bb.y));
+                int x = bb.x;
+                int y = bb.y;
+                int width = bb.width;
+                int height = bb.height;
+                double area = width * height;
+//              double area = Imgproc.contourArea(contour);
+                if (((MainActivity)getActivity()).mConnected) {
+                    ((MainActivity) getActivity()).send(String.format("x: %d, y: %d", x, y));
+//                    ((MainActivity) getActivity()).send(String.format("{\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d,\"area\":%d\"}", x, y, width, height, area));
+                }
             }
         }
 
